@@ -11,8 +11,8 @@ body{
 }
 
 header nav{
-  background: rgba(30, 30, 40, 0.95);
-  border-bottom: 2px solid #d4af37;
+  background: #232526;
+  border-bottom: 2px solid #888;
   box-shadow: 0 4px 24px rgba(0,0,0,0.12);
   padding: 24px 32px;
   border-radius: 0 0 18px 18px;
@@ -28,8 +28,11 @@ header nav h1 {
   font-weight: 800;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #d4af37;
+  color: #4ecdc4;
   text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0;
 }
 
 header nav form{
@@ -41,7 +44,7 @@ header nav form{
 header nav form input{
   padding: 12px 16px;
   border-radius: 8px;
-  border: 1.5px solid #d4af37;
+  border: 1.5px solid #888;
   background: #232526;
   color: #f5f5f5;
   font-size: 18px;
@@ -53,6 +56,12 @@ header nav form input:focus {
   outline: none;
 }
 
+header nav h1 {
+  margin-right: auto;
+}
+
+
+
 form input[type="text"] {
   flex-grow: 1;
   margin-top: 10px;
@@ -60,7 +69,7 @@ form input[type="text"] {
 
 form input[type="text"],
 form button[type="submit"] {
-  border: 1.5px solid #d4af37;
+  border: 1.5px solid #888;
   font-size: 18px;
   padding: 12px 16px;
   border-radius: 8px;
@@ -70,7 +79,7 @@ form button[type="submit"] {
 }
 
 form button[type="submit"]{
-  background: linear-gradient(90deg, #d4af37 0%, #b8860b 100%);
+  background: linear-gradient(90deg, #4ecdc4 0%, #44a08d 100%);
   color: #232526;
   cursor: pointer;
   transition: background 0.3s, color 0.3s, transform 0.2s;
@@ -78,12 +87,12 @@ form button[type="submit"]{
   margin-top: 10px;
   border: none;
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
+  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.15);
 }
 
 form button[type="submit"]:hover,
 .recipe button:hover {
-  background: linear-gradient(90deg, #b8860b 0%, #d4af37 100%);
+  background: linear-gradient(90deg, #44a08d 0%, #4ecdc4 100%);
   color: #fff;
   transform: translateY(-2px) scale(1.04);
 }
@@ -102,45 +111,54 @@ form button[type="submit"]:hover,
 
 .recipe{
   background: rgba(36, 36, 46, 0.98);
-  border: 1.5px solid #d4af37;
+  border: 1.5px solid #888;
   border-radius: 18px;
   display: flex;
   flex-direction: column;
   color: #f5f5f5;
-  box-shadow: 0 8px 32px rgba(212, 175, 55, 0.08), 0 2px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 32px rgba(78, 205, 196, 0.08), 0 2px 8px rgba(0,0,0,0.12);
   cursor: pointer;
   max-width: 380px;
   transition: transform 0.3s, box-shadow 0.3s;
+  height: 100%;
 }
 
 .recipe:hover{
   transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 16px 48px rgba(212, 175, 55, 0.5), 0 4px 16px rgba(0,0,0,0.5);
+  box-shadow: 0 16px 48px rgba(78, 205, 196, 0.5), 0 4px 16px rgba(0,0,0,0.5);
 }
 
 .recipe img{
   height: 260px;
   border-radius: 18px 18px 0 0;
   object-fit: cover;
-  border-bottom: 1.5px solid #d4af37;
+  border-bottom: 1.5px solid #888;
 }
 
 .recipe h3{
   font-size: 26px;
   margin: 16px 0 8px 0;
-  color: #d4af37;
+  color: #4ecdc4;
   font-weight: 700;
 }
 
 .recipe p{
   font-size: 18px;
-  color: #e0c97f;
+  color: #f5f5f5;
   margin: 5px 0 12px 0;
 }
 
 .recipe span{
   font-weight: 700;
   color: #fff;
+}
+
+.recipe-buttons {
+  margin-top: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .recipe button {
@@ -150,12 +168,48 @@ form button[type="submit"]:hover,
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  margin: 18px auto 16px auto;
-  background: linear-gradient(90deg, #d4af37 0%, #b8860b 100%);
+  background: linear-gradient(90deg, #4ecdc4 0%, #44a08d 100%);
   color: #232526;
   font-family: 'Montserrat', 'Lato', 'Open Sans', Arial, sans-serif;
-  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.12);
+  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.12);
   transition: background 0.3s, color 0.3s, transform 0.2s;
+  width: 100%;
+}
+
+.recipe button:hover {
+  background: linear-gradient(90deg, #44a08d 0%, #4ecdc4 100%);
+  color: #fff;
+  transform: translateY(-2px) scale(1.04);
+}
+
+/* Favorite button styles */
+.favorite-btn {
+  background: linear-gradient(90deg, #ff6b6b 0%, #ee5a52 100%) !important;
+  color: #fff !important;
+  font-size: 16px !important;
+  padding: 10px 20px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2) !important;
+}
+
+.favorite-btn:hover {
+  background: linear-gradient(90deg, #ee5a52 0%, #ff6b6b 100%) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+}
+
+/* Wishlist button styles */
+.wishlist-btn {
+  background: linear-gradient(90deg, #4ecdc4 0%, #44a08d 100%) !important;
+  color: #fff !important;
+  font-size: 16px !important;
+  padding: 10px 20px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.2) !important;
+}
+
+.wishlist-btn:hover {
+  background: linear-gradient(90deg, #44a08d 0%, #4ecdc4 100%) !important;
+  transform: translateY(-2px) scale(1.02) !important;
 }
 
 .recipeInstructions {
@@ -172,7 +226,7 @@ form button[type="submit"]:hover,
   transform: translate(-50%, -50%);
   -webkit-transform: translate(-50%, -50%);
   background: rgba(36, 36, 46, 0.99);
-  border: 2px solid #d4af37;
+  border: 2px solid #888;
   border-radius: 18px;
   width: 40%;
   height: 60%;
@@ -180,7 +234,7 @@ form button[type="submit"]:hover,
   transition: all 0.5s ease-in-out;
   overflow-y: scroll;
   color: #f5f5f5;
-  box-shadow: 0 8px 32px rgba(212, 175, 55, 0.12);
+  box-shadow: 0 8px 32px rgba(78, 205, 196, 0.12);
 }
 
 
@@ -193,7 +247,7 @@ form button[type="submit"]:hover,
   text-transform: uppercase;
   text-decoration: underline;
   margin-bottom: 24px;
-  color: #d4af37;
+  color: #4ecdc4;
   font-weight: 800;
 }
 
@@ -201,6 +255,7 @@ form button[type="submit"]:hover,
   margin-bottom: 10px;
   margin-left: -5px;
   margin-top: 10px;
+  color: #f5f5f5;
 }
 
 .recipe-close-btn{
@@ -209,7 +264,7 @@ form button[type="submit"]:hover,
   padding: 8px;
   border-radius: 50%;
   cursor: pointer;
-  background: linear-gradient(90deg, #d4af37 0%, #b8860b 100%);
+  background: linear-gradient(90deg, #4ecdc4 0%, #44a08d 100%);
   color: #232526;
   position: sticky;
   top: 20px;
@@ -220,14 +275,14 @@ form button[type="submit"]:hover,
   justify-content: center;
   align-items: center;
   transition: background 0.3s, color 0.3s, transform 0.2s;
-  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.12);
+  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.12);
   z-index: 10;
   float: right;
   margin-left: auto;
 }
 
 .recipe-close-btn:hover {
-  background: linear-gradient(90deg, #b8860b 0%, #d4af37 100%);
+  background: linear-gradient(90deg, #44a08d 0%, #4ecdc4 100%);
   color: #fff;
   transform: scale(1.08);
 }
@@ -235,7 +290,7 @@ form button[type="submit"]:hover,
 .fa-solid{
   font-size: 22px;
   font-weight: 700;
-  color: #d4af37;
+  color: #4ecdc4;
 }
 
 body::-webkit-scrollbar{
@@ -273,13 +328,19 @@ body::-webkit-scrollbar-track{
   header nav{
     flex-direction: column;
     padding: 12px;
-    border-bottom: 1.5px solid #d4af37;
+    border-bottom: 1.5px solid #888;
     border-radius: 0 0 12px 12px;
   }
 
   header nav form{
     flex-direction: column;
     gap: 8px;
+  }
+
+  .header-logo {
+    height: 36px;
+    width: 36px;
+    margin-right: 4px;
   }
 }
 
@@ -299,4 +360,69 @@ body h2 {
   min-height: 100px;
   width: 100%;
   margin: 30px 0 10px 0;
+  color: #f5f5f5;
+}
+
+.nav-view-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: 16px;
+}
+
+@media screen and (max-width: 900px) {
+  header nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .nav-view-buttons {
+    margin-left: 0;
+    margin-top: 10px;
+    justify-content: center;
+  }
+  header nav form {
+    margin-bottom: 10px;
+  }
+}
+
+.nav-view-buttons button {
+  font-size: 15px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  background: #232526;
+  color: #f5f5f5;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  border: 1.5px solid #888;
+}
+
+.nav-view-buttons button:hover {
+  background: #4ecdc4;
+  color: #232526;
+}
+
+.back-home-btn {
+  background: #4ecdc4;
+  color: #232526;
+  border: 1.5px solid #4ecdc4;
+}
+
+.back-home-btn:hover {
+  background: #44a08d;
+  color: #fff;
+  border: 1.5px solid #44a08d;
+}
+
+.header-logo {
+  height: 100px;
+  width: 100px;
+  object-fit: contain;
+  margin-right: 6px;
+  border-radius: 12px;
+  background: #232526;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  display: inline-block;
+  vertical-align: middle;
 }
