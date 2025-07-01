@@ -449,6 +449,14 @@ body h2 {
   border: 1.5px solid #3498db;
 }
 
+.favorite-cart-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin: 0 10px 10px 10px;
+}
+
 .categories-list {
   display: flex;
   gap: 8px;
