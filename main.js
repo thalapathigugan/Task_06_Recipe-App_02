@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Get references to new buttons
   const viewFavoritesBtn = document.querySelector('.view-favorites-btn');
   const refreshHomeBtn = document.querySelector('.refresh-home-btn');
+  const returnToSearchBtn = document.querySelector('.return-to-search-btn');
 
   // Pagination state
   let currentPage = 1;
@@ -55,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'favorites':
         if (searchTerm) {
           searchBox.value = searchTerm;
-          searchWithinFavorites(searchTerm);
+          searchFavorites(searchTerm);
         } else {
           showFavorites();
         }
@@ -63,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'cart':
         if (searchTerm) {
           searchBox.value = searchTerm;
-          searchWithinCart(searchTerm);
+          searchCart(searchTerm);
         } else {
           showCart();
         }
@@ -220,27 +221,77 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartCountBadge();
   }
 
+  // --- Cart Counter Logic ---
+  let cartCounts = JSON.parse(localStorage.getItem('cartCounts') || '{}');
+
+  function updateCartCount(mealId, change) {
+    // Update the count
+    if (!cartCounts[mealId]) cartCounts[mealId] = 0;
+    cartCounts[mealId] += change;
+    if (cartCounts[mealId] < 0) cartCounts[mealId] = 0;
+
+    // Update the cart array for actual items
+    let cart = getStoredCart();
+    const idx = cart.findIndex(r => r.idMeal === mealId);
+
+    if (cartCounts[mealId] > 0) {
+      if (idx === -1) {
+        // Add to cart if not present
+        const recipe = allRecipes.find(r => r.idMeal === mealId);
+        if (recipe) {
+          cart.push({...recipe, quantity: cartCounts[mealId]});
+        }
+      } else {
+        // Update quantity
+        cart[idx].quantity = cartCounts[mealId];
+      }
+    } else if (idx !== -1) {
+      // Remove from cart if count is 0
+      cart.splice(idx, 1);
+    }
+
+    setStoredCart(cart);
+    localStorage.setItem('cartCounts', JSON.stringify(cartCounts));
+    renderCartCounter(mealId);
+    updateCartCountBadge();
+  }
+
+  function renderCartCounter(mealId) {
+    const counter = document.querySelector(`.cart-counter[data-id='${mealId}']`);
+    if (counter) {
+      const count = cartCounts[mealId] || 0;
+      counter.querySelector('.cart-count').textContent = count;
+      counter.querySelector('.cart-btn.minus').disabled = count === 0;
+    }
+  }
+
+  function syncAllCartCounters() {
+    Object.keys(cartCounts).forEach(mealId => renderCartCounter(mealId));
+  }
+
   function updateCartCountBadge() {
-    const count = getStoredCart().length;
-    cartCountBadge.textContent = count > 0 ? count : '';
+    const total = Object.values(cartCounts).reduce((sum, c) => sum + c, 0);
+    cartCountBadge.textContent = total > 0 ? total : '';
   }
 
   // Search within favorites
-  function searchWithinFavorites(searchTerm) {
+  function searchFavorites(searchTerm) {
+    if (!searchTerm.trim()) {
+      showFavorites();
+      return;
+    }
     const favorites = getStoredFavorites();
     const filteredFavorites = favorites.filter(recipe => 
       recipe.strMeal.toLowerCase().includes(searchTerm.toLowerCase()) ||
       recipe.strCategory?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       recipe.strArea?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    
     allRecipes = filteredFavorites;
     currentPage = 1;
     updateURL(1, null, 'favorites');
     const url = new URL(window.location);
     url.searchParams.set('search', searchTerm);
     window.history.pushState({}, '', url);
-    
     if (filteredFavorites.length === 0) {
       centerMessage.innerHTML = `<h2>No favorites found matching "${searchTerm}".</h2>`;
       paginationContainer.innerHTML = '';
@@ -251,21 +302,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Search within cart
-  function searchWithinCart(searchTerm) {
+  function searchCart(searchTerm) {
+    if (!searchTerm.trim()) {
+      showCart();
+      return;
+    }
     const cart = getStoredCart();
     const filteredCart = cart.filter(recipe => 
       recipe.strMeal.toLowerCase().includes(searchTerm.toLowerCase()) ||
       recipe.strCategory?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       recipe.strArea?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    
     allRecipes = filteredCart;
     currentPage = 1;
     updateURL(1, null, 'cart');
     const url = new URL(window.location);
     url.searchParams.set('search', searchTerm);
     window.history.pushState({}, '', url);
-    
     if (filteredCart.length === 0) {
       centerMessage.innerHTML = `<h2>No cart items found matching "${searchTerm}".</h2>`;
       paginationContainer.innerHTML = '';
@@ -304,10 +357,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ${fav ? `<svg class='heart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#ff6b6b"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
             : `<svg class='heart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`}
           </button>
-          <button class="cart-btn" title="Add to Cart">
-            ${inCart ? `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#3498db"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`
-            : `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`}
-          </button>
+          <div class="cart-counter" data-id="${meal.idMeal}">
+            <button class="cart-btn minus" onclick="updateCartCount('${meal.idMeal}', -1)" disabled>-</button>
+            <span class="cart-count">0</span>
+            <button class="cart-btn plus" onclick="updateCartCount('${meal.idMeal}', 1)">+</button>
+          </div>
         </div>
       `;
       const viewBtn = recipeDiv.querySelector('.view-recipe-btn');
@@ -322,17 +376,15 @@ document.addEventListener('DOMContentLoaded', () => {
           : `<svg class='heart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
         showToast(isFavorite(meal.idMeal) ? 'Added to Favorites' : 'Removed from Favorites');
       });
-      const cartBtn = recipeDiv.querySelector('.cart-btn');
-      cartBtn.addEventListener('click', () => {
-        toggleCart(meal);
-        cartBtn.innerHTML = isInCart(meal.idMeal)
-          ? `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#3498db"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`
-          : `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`;
-        showToast(isInCart(meal.idMeal) ? 'Added to Cart' : 'Removed from Cart');
-      });
+      // const cartBtn = recipeDiv.querySelector('.cart-btn');
+      // cartBtn.addEventListener('click', () => {
+      //   toggleCart(meal);
+      //   showToast(isInCart(meal.idMeal) ? 'Added to Cart' : 'Removed from Cart');
+      // });
       recipeContainer.appendChild(recipeDiv);
     });
     renderPagination(meals.length, currentPage);
+    syncAllCartCounters();
   }
 
   // Remove refreshHomeBtn logic
@@ -365,6 +417,8 @@ document.addEventListener('DOMContentLoaded', () => {
     isHome = true;
     updateURL(currentPage, null, 'home');
     fetchDefaultHomeRecipes();
+    if (returnToSearchBtn) returnToSearchBtn.style.display = "none";
+    if (searchBox) searchBox.value = '';
   }
 
   // Debounced search function
@@ -402,10 +456,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (currentView === 'favorites') {
       // Search within favorites
-      searchWithinFavorites(text);
+      searchFavorites(text);
     } else if (currentView === 'cart') {
       // Search within cart
-      searchWithinCart(text);
+      searchCart(text);
     } else {
       // Regular search for home/category/search views
       isHome = false;
@@ -475,8 +529,58 @@ document.addEventListener('DOMContentLoaded', () => {
   // Remove search button event listener and update input event logic
   searchBox.addEventListener("input", function(e) {
     const value = e.target.value;
-    debouncedSearch(value);
+    if (value.trim().length >= 1) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentView = urlParams.get('view') || 'home';
+      if (currentView === 'favorites') {
+        searchFavorites(value);
+      } else if (currentView === 'cart') {
+        searchCart(value);
+      } else {
+        searchHomeRecipes(value);
+      }
+    } else {
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentView = urlParams.get('view') || 'home';
+      if (currentView === 'favorites') {
+        showFavorites();
+      } else if (currentView === 'cart') {
+        showCart();
+      } else {
+        showHome();
+      }
+    }
   });
+
+  // Enable search on Enter key in the search box
+  const searchForm = document.querySelector('.search-form');
+  if (searchForm) {
+    searchForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const value = searchBox.value;
+      if (value.trim().length >= 1) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentView = urlParams.get('view') || 'home';
+        if (currentView === 'favorites') {
+          searchFavorites(value);
+        } else if (currentView === 'cart') {
+          searchCart(value);
+        } else {
+          searchHomeRecipes(value);
+        }
+      } else {
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentView = urlParams.get('view') || 'home';
+        if (currentView === 'favorites') {
+          showFavorites();
+        } else if (currentView === 'cart') {
+          showCart();
+        } else {
+          showHome();
+        }
+      }
+    });
+  }
 
   let currentView = 'home'; // 'home', 'favorites'
 
@@ -535,6 +639,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!data.meals) {
         centerMessage.innerHTML = '<h2>No recipes found.</h2>';
         paginationContainer.innerHTML = '';
+        if (returnToSearchBtn) returnToSearchBtn.style.display = "block";
+        if (searchBox) searchBox.value = '';
         return;
       }
       allRecipes = data.meals;
@@ -542,9 +648,13 @@ document.addEventListener('DOMContentLoaded', () => {
       isHome = false;
       renderCategoryRecipes(allRecipes);
       renderPagination(allRecipes.length, currentPage);
+      if (returnToSearchBtn) returnToSearchBtn.style.display = "block";
+      if (searchBox) searchBox.value = '';
     } catch (e) {
       centerMessage.innerHTML = '<h2>Error fetching category recipes.</h2>';
       paginationContainer.innerHTML = '';
+      if (returnToSearchBtn) returnToSearchBtn.style.display = "block";
+      if (searchBox) searchBox.value = '';
     }
   }
 
@@ -569,14 +679,17 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>Category: <span>${currentCategory}</span></p>
         <div class="recipe-buttons">
           <button class="view-recipe-btn">View Recipe</button>
+        </div>
+        <div class="favorite-cart-controls">
           <button class="favorite-btn" title="Toggle Favorite">
             ${fav ? `<svg class='heart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#ff6b6b"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
             : `<svg class='heart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`}
           </button>
-          <button class="cart-btn" title="Add to Cart">
-            ${inCart ? `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#3498db"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`
-            : `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`}
-          </button>
+          <div class="cart-counter" data-id="${meal.idMeal}">
+            <button class="cart-btn minus" onclick="updateCartCount('${meal.idMeal}', -1)" disabled>-</button>
+            <span class="cart-count">0</span>
+            <button class="cart-btn plus" onclick="updateCartCount('${meal.idMeal}', 1)">+</button>
+          </div>
         </div>
       `;
       const viewBtn = recipeDiv.querySelector('.view-recipe-btn');
@@ -598,14 +711,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const cartBtn = recipeDiv.querySelector('.cart-btn');
       cartBtn.addEventListener('click', () => {
         toggleCart(meal);
-        cartBtn.innerHTML = isInCart(meal.idMeal)
-          ? `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#3498db"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`
-          : `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`;
         showToast(isInCart(meal.idMeal) ? 'Added to Cart' : 'Removed from Cart');
       });
       recipeContainer.appendChild(recipeDiv);
     });
     renderPagination(meals.length, currentPage);
+    syncAllCartCounters();
   }
 
   // Patch pagination to work for all views with URL parameters
@@ -729,6 +840,8 @@ document.addEventListener('DOMContentLoaded', () => {
     currentPage = 1;
     renderFavorites(allRecipes);
     renderPagination(allRecipes.length, currentPage);
+    if (returnToSearchBtn) returnToSearchBtn.style.display = "block";
+    if (searchBox) searchBox.value = '';
   }
 
   function renderFavorites(meals) {
@@ -753,13 +866,16 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>Belongs to <span>${meal.strCategory || ''}</span> Category</p>
         <div class="recipe-buttons">
           <button class="view-recipe-btn">View Recipe</button>
+        </div>
+        <div class="favorite-cart-controls">
           <button class="favorite-btn" title="Toggle Favorite">
             <svg class='heart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#ff6b6b"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
           </button>
-          <button class="cart-btn" title="Add to Cart">
-            ${inCart ? `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#3498db"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`
-            : `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`}
-          </button>
+          <div class="cart-counter" data-id="${meal.idMeal}">
+            <button class="cart-btn minus" onclick="updateCartCount('${meal.idMeal}', -1)" disabled>-</button>
+            <span class="cart-count">0</span>
+            <button class="cart-btn plus" onclick="updateCartCount('${meal.idMeal}', 1)">+</button>
+          </div>
         </div>
       `;
       const viewBtn = recipeDiv.querySelector('.view-recipe-btn');
@@ -777,14 +893,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const cartBtn = recipeDiv.querySelector('.cart-btn');
       cartBtn.addEventListener('click', () => {
         toggleCart(meal);
-        cartBtn.innerHTML = isInCart(meal.idMeal)
-          ? `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#3498db"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`
-          : `<svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>`;
         showToast(isInCart(meal.idMeal) ? 'Added to Cart' : 'Removed from Cart');
       });
       recipeContainer.appendChild(recipeDiv);
     });
     renderPagination(meals.length, currentPage);
+    syncAllCartCounters();
   }
 
   viewFavoritesBtn.addEventListener('click', showFavorites);
@@ -798,18 +912,22 @@ document.addEventListener('DOMContentLoaded', () => {
     currentPage = 1;
     renderCart(allRecipes);
     renderPagination(allRecipes.length, currentPage);
+    if (returnToSearchBtn) returnToSearchBtn.style.display = "block";
+    if (searchBox) searchBox.value = '';
   }
 
   function renderCart(meals) {
     recipeContainer.innerHTML = "";
-    if (!meals || meals.length === 0) {
+    // Only show meals with quantity > 0
+    const filteredMeals = (meals || []).filter(meal => (meal.quantity || 0) > 0);
+    if (!filteredMeals.length) {
       centerMessage.innerHTML = '<h2>No cart recipes found.</h2>';
       paginationContainer.innerHTML = '';
       return;
     }
     const start = (currentPage - 1) * RECIPES_PER_PAGE;
     const end = start + RECIPES_PER_PAGE;
-    const pageMeals = meals.slice(start, end);
+    const pageMeals = filteredMeals.slice(start, end);
     pageMeals.forEach(meal => {
       const recipeDiv = document.createElement('div');
       recipeDiv.classList.add('recipe');
@@ -820,26 +938,34 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>Belongs to <span>${meal.strCategory || ''}</span> Category</p>
         <div class="recipe-buttons">
           <button class="view-recipe-btn">View Recipe</button>
-          <button class="cart-btn" title="Remove from Cart">
-            <svg class='cart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#3498db"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61l1.38-7.39H6"/></svg>
+        </div>
+        <div class="favorite-cart-controls">
+          <button class="favorite-btn" title="Toggle Favorite">
+            <svg class='heart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#ff6b6b"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
           </button>
+          <div class="cart-counter" data-id="${meal.idMeal}">
+            <button class="cart-btn minus" onclick="window.handleCartMinus('${meal.idMeal}', this)" ${meal.quantity === 0 ? 'disabled' : ''}>-</button>
+            <span class="cart-count">${meal.quantity || 0}</span>
+            <button class="cart-btn plus" onclick="updateCartCount('${meal.idMeal}', 1)">+</button>
+          </div>
         </div>
       `;
       const viewBtn = recipeDiv.querySelector('.view-recipe-btn');
       viewBtn.addEventListener('click', () => {
         openRecipePopup(meal);
       });
-      const cartBtn = recipeDiv.querySelector('.cart-btn');
-      cartBtn.addEventListener('click', () => {
-        toggleCart(meal);
-        recipeDiv.remove();
-        if (recipeContainer.children.length === 0) {
-          centerMessage.innerHTML = '<h2>No cart recipes found.</h2>';
-        }
+      const favBtn = recipeDiv.querySelector('.favorite-btn');
+      favBtn.addEventListener('click', () => {
+        toggleFavorite(meal);
+        favBtn.innerHTML = isFavorite(meal.idMeal)
+          ? `<svg class='heart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#ff6b6b"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
+          : `<svg class='heart-icon' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+        showToast(isFavorite(meal.idMeal) ? 'Added to Favorites' : 'Removed from Favorites');
       });
-              recipeContainer.appendChild(recipeDiv);
+      recipeContainer.appendChild(recipeDiv);
     });
-    renderPagination(meals.length, currentPage);
+    renderPagination(filteredMeals.length, currentPage);
+    syncAllCartCounters();
   }
 
   document.querySelector('.view-cart-btn').addEventListener('click', showCart);
@@ -859,4 +985,106 @@ document.addEventListener('DOMContentLoaded', () => {
       toast.remove();
     }, 1500);
   }
+
+  // Add a global handler for the minus button in cart
+  window.handleCartMinus = function(mealId, btn) {
+    const prevCount = (cartCounts[mealId] || 0);
+    updateCartCount(mealId, -1);
+    const newCount = (cartCounts[mealId] || 0);
+    if (prevCount > newCount) {
+      showToast('Removed from Cart');
+    }
+    // Remove the item from the cart page if its count is now 0
+    let cart = getStoredCart();
+    const idx = cart.findIndex(r => r.idMeal === mealId);
+    if (idx === -1) {
+      // Remove the recipe div from DOM
+      const recipeDiv = btn.closest('.recipe');
+      if (recipeDiv) recipeDiv.remove();
+      // If no more recipes, show empty message
+      if (document.querySelectorAll('.recipe').length === 0) {
+        centerMessage.innerHTML = '<h2>No cart recipes found.</h2>';
+      }
+    }
+  }
+
+  // Patch cart plus button to show toast
+  const originalUpdateCartCount = updateCartCount;
+  window.updateCartCount = function(mealId, change) {
+    const prevCount = (cartCounts[mealId] || 0);
+    originalUpdateCartCount(mealId, change);
+    const newCount = (cartCounts[mealId] || 0);
+    if (change > 0 && newCount > prevCount) {
+      showToast('Added to Cart');
+    } else if (change < 0 && newCount < prevCount) {
+      showToast('Removed from Cart');
+    }
+  }
+
+  // --- Individual Search Functions for Each View ---
+  function searchHomeRecipes(searchTerm) {
+    if (!searchTerm.trim()) {
+      showHome();
+      return;
+    }
+    isHome = false;
+    updateURL(1, null, 'search');
+    const url = new URL(window.location);
+    url.searchParams.set('search', searchTerm);
+    window.history.pushState({}, '', url);
+    fetchRecipes(searchTerm);
+  }
+
+  function searchFavorites(searchTerm) {
+    if (!searchTerm.trim()) {
+      showFavorites();
+      return;
+    }
+    const favorites = getStoredFavorites();
+    const filteredFavorites = favorites.filter(recipe => 
+      recipe.strMeal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      recipe.strCategory?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      recipe.strArea?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    allRecipes = filteredFavorites;
+    currentPage = 1;
+    updateURL(1, null, 'favorites');
+    const url = new URL(window.location);
+    url.searchParams.set('search', searchTerm);
+    window.history.pushState({}, '', url);
+    if (filteredFavorites.length === 0) {
+      centerMessage.innerHTML = `<h2>No favorites found matching "${searchTerm}".</h2>`;
+      paginationContainer.innerHTML = '';
+    } else {
+      renderFavorites(filteredFavorites);
+      renderPagination(filteredFavorites.length, currentPage);
+    }
+  }
+
+  function searchCart(searchTerm) {
+    if (!searchTerm.trim()) {
+      showCart();
+      return;
+    }
+    const cart = getStoredCart();
+    const filteredCart = cart.filter(recipe => 
+      recipe.strMeal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      recipe.strCategory?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      recipe.strArea?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    allRecipes = filteredCart;
+    currentPage = 1;
+    updateURL(1, null, 'cart');
+    const url = new URL(window.location);
+    url.searchParams.set('search', searchTerm);
+    window.history.pushState({}, '', url);
+    if (filteredCart.length === 0) {
+      centerMessage.innerHTML = `<h2>No cart items found matching "${searchTerm}".</h2>`;
+      paginationContainer.innerHTML = '';
+    } else {
+      renderCart(filteredCart);
+      renderPagination(filteredCart.length, currentPage);
+    }
+  }
+
 });
