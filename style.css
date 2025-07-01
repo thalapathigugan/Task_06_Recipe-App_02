@@ -554,13 +554,14 @@ body h2 {
   color: #fff;
 }
 .cart-btn {
-  background: none !important;
+  background: #3498db !important;
   border: none !important;
   box-shadow: none !important;
   padding: 4px !important;
   margin: 0 0 0 0 !important;
-  width: 40px !important;
-  height: 40px !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -569,6 +570,7 @@ body h2 {
 }
 .cart-btn:hover {
   background: rgba(52,152,219,0.08) !important;
+  color: #3498db !important;
 }
 
 .cart-count-badge {
