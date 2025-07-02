@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let isHome = true;
 
   let currentCategory = null;
-
+  let currentSearchTerm = '';
+  
   // URL state management
   function updateURL(page = currentPage, category = currentCategory, view = 'home') {
     const url = new URL(window.location);
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Check if there's a search term in the URL
     const searchTerm = new URLSearchParams(window.location.search).get('search');
+    currentSearchTerm = searchTerm || '';
     
     switch (params.view) {
       case 'favorites':
@@ -72,7 +74,26 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'category':
         if (currentCategory) {
           setActiveCategory(currentCategory);
-          fetchCategoryRecipes(currentCategory);
+          if (searchTerm) {
+            searchBox.value = searchTerm;
+            // Fetch category recipes and filter by search term
+            fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(currentCategory)}`)
+              .then(res => res.json())
+              .then(data => {
+                let meals = data.meals || [];
+                if (searchTerm) {
+                  meals = meals.filter(meal =>
+                    meal.strMeal.toLowerCase().includes(searchTerm.toLowerCase())
+                  );
+                }
+                allRecipes = meals;
+                currentPage = 1;
+                renderRecipes(allRecipes, false);
+                renderPagination(allRecipes.length, currentPage);
+              });
+          } else {
+            fetchCategoryRecipes(currentCategory);
+          }
         } else {
           showHome();
         }
@@ -390,7 +411,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Remove refreshHomeBtn logic
   // On home, fetch all recipes for the default search and paginate them
   function fetchDefaultHomeRecipes() {
-    centerMessage.innerHTML = "<h2>Loading Recipes...</h2>";
     paginationContainer.innerHTML = '';
     fetch('https://www.themealdb.com/api/json/v1/1/search.php?s=')
       .then(res => res.json())
@@ -415,10 +435,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function showHome() {
     currentCategory = null;
     isHome = true;
+    currentSearchTerm = '';
     updateURL(currentPage, null, 'home');
     fetchDefaultHomeRecipes();
     if (returnToSearchBtn) returnToSearchBtn.style.display = "none";
     if (searchBox) searchBox.value = '';
+    if (categoriesSelect) categoriesSelect.value = '';
   }
 
   // Debounced search function
@@ -463,11 +485,40 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       // Regular search for home/category/search views
       isHome = false;
-      updateURL(1, null, 'search');
-      const url = new URL(window.location);
-      url.searchParams.set('search', text);
-      window.history.pushState({}, '', url);
-      fetchRecipes(text);
+      currentSearchTerm = text;
+      
+      // If a category is selected, search within that category
+      if (currentCategory) {
+        updateURL(1, currentCategory, 'category');
+        const url = new URL(window.location);
+        url.searchParams.set('search', text);
+        window.history.pushState({}, '', url);
+        
+        // Fetch category recipes and filter by search term
+        fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(currentCategory)}`)
+          .then(res => res.json())
+          .then(data => {
+            let meals = data.meals || [];
+            if (text.trim()) {
+              meals = meals.filter(meal =>
+                meal.strMeal.toLowerCase().includes(text.toLowerCase())
+              );
+            }
+            allRecipes = meals;
+            currentPage = 1;
+            renderRecipes(allRecipes, false);
+            renderPagination(allRecipes.length, currentPage);
+          });
+      } else {
+        // Regular search across all recipes - clear any selected category
+        currentCategory = null;
+        if (categoriesSelect) categoriesSelect.value = '';
+        updateURL(1, null, 'search');
+        const url = new URL(window.location);
+        url.searchParams.set('search', text);
+        window.history.pushState({}, '', url);
+        fetchRecipes(text);
+      }
     }
   }, 500);
 
@@ -526,60 +577,85 @@ document.addEventListener('DOMContentLoaded', () => {
     recipeDetailsContent.parentElement.style.display = "none";
   });
 
-  // Remove search button event listener and update input event logic
+  // Update search input event for sync
   searchBox.addEventListener("input", function(e) {
+    currentSearchTerm = e.target.value.trim();
+    debouncedSearch(e.target.value);
+  });
+
+  // Update category select event for sync
+  categoriesSelect.addEventListener('change', (e) => {
     const value = e.target.value;
-    if (value.trim().length >= 1) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const currentView = urlParams.get('view') || 'home';
-      if (currentView === 'favorites') {
-        searchFavorites(value);
-      } else if (currentView === 'cart') {
-        searchCart(value);
-      } else {
-        searchHomeRecipes(value);
-      }
+    currentCategory = (value === '__all__' || value === '') ? null : value;
+    
+    // Clear the search term when category is changed
+    currentSearchTerm = '';
+    if (searchBox) searchBox.value = '';
+    
+    // Clear search from URL
+    const url = new URL(window.location);
+    url.searchParams.delete('search');
+    window.history.pushState({}, '', url);
+    
+    // Show category recipes without search filter
+    if (currentCategory) {
+      updateURL(1, currentCategory, 'category');
+      fetchCategoryRecipes(currentCategory);
     } else {
-      const urlParams = new URLSearchParams(window.location.search);
-      const currentView = urlParams.get('view') || 'home';
-      if (currentView === 'favorites') {
-        showFavorites();
-      } else if (currentView === 'cart') {
-        showCart();
-      } else {
-        showHome();
-      }
+      updateURL(1, null, 'home');
+      showHome();
     }
   });
 
-  // Enable search on Enter key in the search box
-  const searchForm = document.querySelector('.search-form');
-  if (searchForm) {
-    searchForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const value = searchBox.value;
-      if (value.trim().length >= 1) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentView = urlParams.get('view') || 'home';
-        if (currentView === 'favorites') {
-          searchFavorites(value);
-        } else if (currentView === 'cart') {
-          searchCart(value);
-        } else {
-          searchHomeRecipes(value);
-        }
-      } else {
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentView = urlParams.get('view') || 'home';
-        if (currentView === 'favorites') {
-          showFavorites();
-        } else if (currentView === 'cart') {
-          showCart();
-        } else {
-          showHome();
-        }
-      }
-    });
+  function filterAndRenderHome() {
+    // Only run on home/search view
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentView = urlParams.get('view') || 'home';
+    if (currentView !== 'home' && currentView !== 'search') return;
+
+    // Update URL
+    updateURL(1, currentCategory, currentSearchTerm ? 'search' : 'home');
+    const url = new URL(window.location);
+    if (currentSearchTerm) {
+      url.searchParams.set('search', currentSearchTerm);
+    } else {
+      url.searchParams.delete('search');
+    }
+    window.history.pushState({}, '', url);
+
+    if (currentCategory) {
+      // Fetch category, then filter by search
+      fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(currentCategory)}`)
+        .then(res => res.json())
+        .then(data => {
+          let meals = data.meals || [];
+          if (currentSearchTerm) {
+            meals = meals.filter(meal =>
+              meal.strMeal.toLowerCase().includes(currentSearchTerm.toLowerCase())
+            );
+          }
+          allRecipes = meals;
+          currentPage = 1;
+          renderRecipes(allRecipes, false);
+          renderPagination(allRecipes.length, currentPage);
+        });
+    } else {
+      // Fetch all, then filter by search
+      fetch('https://www.themealdb.com/api/json/v1/1/search.php?s=')
+        .then(res => res.json())
+        .then(data => {
+          let meals = data.meals || [];
+          if (currentSearchTerm) {
+            meals = meals.filter(meal =>
+              meal.strMeal.toLowerCase().includes(currentSearchTerm.toLowerCase())
+            );
+          }
+          allRecipes = meals;
+          currentPage = 1;
+          renderRecipes(allRecipes, false);
+          renderPagination(allRecipes.length, currentPage);
+        });
+    }
   }
 
   let currentView = 'home'; // 'home', 'favorites'
