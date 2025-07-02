@@ -592,6 +592,51 @@ body h2 {
     flex-wrap: wrap;
     justify-content: center;
   }
+  nav {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+  }
+
+
+  .view-cart-btn {
+    background: #fff !important;
+    color: #3498db !important;
+    border: 1.5px solid #b3d8fd !important;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 12px !important;
+    border-radius: 4px !important;
+    min-width: 100px !important;
+    min-height: 24px !important;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.10);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .view-favorites-btn {
+    background: #fff !important;
+    color: #3498db !important;
+    border: 1.5px solid #b3d8fd !important;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 12px !important;
+    border-radius: 4px !important;
+    min-width: 100px !important;
+    min-height: 42px !important;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.10);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
 }
 
 .favorite-btn {
@@ -691,7 +736,7 @@ body h2 {
 .categories-select {
   width: 100%;
   max-width: 200px;
-  min-height: 44px;
+  min-height: 48px;
   padding: 10px 16px;
   border: 1.5px solid #b3d8fd;
   border-radius: 8px;
