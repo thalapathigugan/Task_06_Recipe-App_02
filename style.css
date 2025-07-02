@@ -340,6 +340,28 @@ body::-webkit-scrollbar-track{
   .recipe-container {
     grid-template-columns: repeat(2, 1fr);
   }
+  .view-favorites-btn {
+    padding: 7px 12px !important;
+    font-size: 13px !important;
+    min-width: 80px;
+    min-height: 32px;
+    border-radius: 5px !important;
+  }
+  .cart-count-badge {
+    min-width: 20px;
+    height: 16px;
+    font-size: 11px;
+    padding: 0 4px;
+  }
+  .categories-container button,
+  .categories-select,
+  .category-btn {
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+    min-width: 70px;
+    min-height: 28px;
+    border-radius: 5px !important;
+  }
 }
 
 @media screen and (max-width: 500px) {
@@ -362,13 +384,14 @@ body::-webkit-scrollbar-track{
     margin: 5px 0;
   }
   .search-and-category-container {
-    display: flex;
-    justify-content: end;
-    align-items: center!important;
-    gap: 8px;
-    width: 100%;
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 4px;
+    width: 100% !important;
     padding: 0;
-    margin-left: 40px;
+    margin: 0;
+    min-width: 0;
+    box-sizing: border-box;
   }
   .search-form {
     width: 100%;
@@ -392,6 +415,34 @@ body::-webkit-scrollbar-track{
     max-width: 100%;
     font-size: 15px;
     min-height: 40px;
+  }
+  .view-favorites-btn {
+    padding: 5px 4px !important;
+    font-size: 11px !important;
+    min-width: 40px !important;
+    min-height: 24px;
+    border-radius: 4px !important;
+  }
+  .cart-count-badge {
+    min-width: 12px !important  ;
+    height: 12px;
+    font-size: 9px;
+    padding: 0 2px;
+  }
+  .categories-container button,
+  .categories-select,
+  .category-btn {
+    padding: 4px 6px !important;
+    font-size: 11px !important;
+    min-width: 80px !important;
+    min-height: 40px !important;
+    border-radius: 8px !important;
+  }
+
+  .nav-view-buttons button {
+    min-width: 100px !important;
+    min-height: 40px !important;
+    border-radius: 8px !important;
   }
 }
 
@@ -590,16 +641,18 @@ body h2 {
   justify-content: flex-end;
   align-items: center;
   gap: 10px;
-  margin: 10px 84px 10px 10px;
 }
 
 .search-and-category-container {
   display: flex;
   justify-content: flex-end;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
+  width: 94%;
+  margin: 0;
+  padding: 0;
+  position: relative;
 }
-
 
 @media screen and (max-width: 900px) {
   .categories-list {
@@ -807,6 +860,18 @@ body h2 {
   border-radius: 8px;
   padding: 2px 10px;
   border: 1px solid #b3d8fd;
+}
+
+@media screen and (min-width: 1600px) {
+  .recipe-container {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media screen and (min-width: 1900px) {
+  .recipe-container {
+    grid-template-columns: repeat(6, 1fr);
+  }
 }
 
 @media screen and (max-width: 900px) {
