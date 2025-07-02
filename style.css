@@ -360,7 +360,7 @@ body::-webkit-scrollbar-track{
     padding: 6px 10px !important;
     font-size: 13px !important;
     min-width: 70px;
-    min-height: 28px;
+    min-height: 44px;
     border-radius: 5px !important;
   }
 }
@@ -691,7 +691,7 @@ body h2 {
 .categories-select {
   width: 100%;
   max-width: 200px;
-  min-height: 50px;
+  min-height: 44px;
   padding: 10px 16px;
   border: 1.5px solid #b3d8fd;
   border-radius: 8px;
@@ -821,6 +821,10 @@ body h2 {
 @media screen and (max-width: 500px) {
   html, body {
     font-size: 13px;
+  }
+
+  .categories-select {
+    min-height: 40px !important;
   }
   h1, .header-logo + h1, .search-container h2, .center-message h2 {
     font-size: 18px !important;
