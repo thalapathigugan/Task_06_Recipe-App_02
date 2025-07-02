@@ -900,3 +900,44 @@ body h2 {
   }
 }
 
+.mobile-bottom-bar {
+  display: none;
+}
+
+@media screen and (max-width: 500px) {
+  .mobile-bottom-bar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    background: #fff;
+    border-top: 1.5px solid #b3d8fd;
+    box-shadow: 0 -2px 12px rgba(52,152,219,0.08);
+    justify-content: space-around;
+    align-items: center;
+    padding: 20px !important;
+    gap: 12px;
+  }
+  .mobile-bottom-bar button {
+    background: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 10px 24px;
+    box-shadow: 0 2px 8px rgba(52,152,219,0.10);
+    cursor: pointer;
+    flex: 1 1 0;
+    margin: 0 8px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .mobile-bottom-bar button:active,
+  .mobile-bottom-bar button:hover {
+    background: #217dbb;
+    color: #fff;
+  }
+}
+

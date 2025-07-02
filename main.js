@@ -1195,4 +1195,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Mobile bottom bar button logic
+  const mobileBottomFavoritesBtn = document.querySelector('.mobile-bottom-favorites-btn');
+  const mobileBottomCartBtn = document.querySelector('.mobile-bottom-cart-btn');
+  if (mobileBottomFavoritesBtn && viewFavoritesBtn) {
+    mobileBottomFavoritesBtn.addEventListener('click', () => viewFavoritesBtn.click());
+  }
+  if (mobileBottomCartBtn && viewCartBtn) {
+    mobileBottomCartBtn.addEventListener('click', () => viewCartBtn.click());
+  }
+
 });
