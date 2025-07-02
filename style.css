@@ -395,6 +395,15 @@ body::-webkit-scrollbar-track{
     justify-content: center;
     margin: auto;
   }
+
+  .pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 0 auto 32px auto;
+    padding-bottom: 60px;
+  }
   
   
 }
