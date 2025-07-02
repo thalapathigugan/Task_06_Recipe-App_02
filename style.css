@@ -374,6 +374,27 @@ body::-webkit-scrollbar-track{
     padding-right: 32px !important;
     min-width: 100% !important;
   }
+
+  .view-favorites-btn,
+  .view-cart-btn {
+    display: none !important;
+  }
+
+  .header-logo-container a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: auto;
+    text-decoration: none;
+  }
+
+  .header-logo-container {
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+  }
   
   
 }
