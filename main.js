@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const categoriesSelect = document.querySelector('.categories-select');
   const cartCountBadge = document.querySelector('.cart-count-badge');
 
+
+
   // Get references to new buttons
   const viewFavoritesBtn = document.querySelector('.view-favorites-btn');
   const refreshHomeBtn = document.querySelector('.refresh-home-btn');
@@ -77,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (searchTerm) {
             searchBox.value = searchTerm;
             // Fetch category recipes and filter by search term
-            fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?c=${encodeURIComponent(currentCategory)}`)
+            fetch(process.env.API_URL)
               .then(res => res.json())
               .then(data => {
                 let meals = data.meals || [];
